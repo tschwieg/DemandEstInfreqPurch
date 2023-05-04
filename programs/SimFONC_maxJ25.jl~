@@ -1,0 +1,162 @@
+using Distributions
+using LinearAlgebra
+using Plots
+using Optim
+using JLD2
+
+include("bayes_BLP_DP.jl")
+
+function BuildDataFONC( T::Int64, JDist, K::Int64, L::Int64, Γ::Matrix{Float64},
+                    βSim::Vector{Float64}, ηSim::Vector{Float64},
+                    errors::Vector{Float64}, numInst::Int64,
+                    zDists, XDist, arrivalsVec,
+                    ζ::Matrix{Float64}, deltaAdjust::Float64)
+
+    J = rand( JDist, T)
+    bigJ = maximum(J)
+    nSumers = 25
+
+    cMap = Matrix{Int64}(undef,T,bigJ);
+    X = Vector{Matrix{Float64}}(undef,T);
+    Z = Vector{Matrix{Float64}}(undef,T);
+    A = Vector{Int64}(undef,T);
+    q = Matrix{Float64}(undef,T,bigJ);
+    δ = Vector{Vector{Float64}}(undef,T);
+
+    N = sum(J)
+    S = zeros(T,bigJ+1);
+
+    q .= 0.0;
+    counter = 1
+
+    for t in 1:T
+        cMap[t,1:J[t]] = counter:(counter+J[t]-1)
+        X[t] = zeros(J[t],K)
+
+        Z[t] = zeros(J[t],numInst)
+        for z in 1:numInst
+            Z[t][:,z] = rand( zDists[z], J[t])
+        end
+
+        X[t][:,2:end] = rand( XDist, J[t])[2:end,:]'
+
+        # for j in 1:J[t]#x in 2:K
+        #     X[t][j,2:end] = rand( XDist )
+        # end
+
+        MC = Z[t]*ηSim
+        ## Need to solve the equation:
+        ## D + J_p (p - mc) = 0
+
+        del(p) = X[t][:,2:end]*βSim[2:end] + errors[cMap[t,1:J[t]]] + p*βSim[1]
+
+        xFun(p) = hcat( p, X[t][:,2:end] )
+
+        Dfun(p) = PredictSharesBLP( del(p), xFun(p), nSumers, Γ, ζ)
+
+
+        Jp(p) = BuildPriceJacBLP( xFun(p), del(p), nSumers, Γ, ζ, J[t], βSim )
+
+        Imat = diagm(ones(J[t]))
+        #Imat = ones(J[t],J[t])
+                
+        loss(p) = sum((Dfun(p) + (Imat .* Jp(p))*(p - MC)).^2)
+
+        oLoss(p) = -sum( ((p - MC) .* Dfun(p)).^2)
+
+        a = optimize(loss, ones(J[t]), BFGS(), autodiff=:forward)
+
+        if any( a.minimizer .>= 10.0 )
+            println("Market $t has prices above 10.0")
+            println("X: ", X[t])
+            println("ξ: ", errors[cMap[t,1:J[t]]])
+            println("MC:  ", MC)
+            println("P:  ", a.minimizer)
+            #@assert( 1 == 0)
+        end
+        
+        
+        X[t][:,1] = a.minimizer
+        #X[t][:,1] = Z[t]*ηSim + errors[cMap[t,1:J[t]],1] .- mean( errors[:,1])
+        
+
+        δ[t] = X[t]*βSim + errors[cMap[t,1:J[t]]]# .- mean( errors[:,2]) .+ deltaAdjust
+        S[t,1:J[t]] = PredictSharesBLP( δ[t], X[t], nSumers, Γ, ζ)
+        S[t,J[t]+1] = 1.0 - sum( S[t,1:J[t]] )
+        A[t] = rand( arrivalsVec[t])
+
+        ActualArrivals = rand( arrivalsVec[t])
+        q[t,1:J[t]] = rand( Multinomial(ActualArrivals, S[t,1:(J[t]+1)] ))[1:J[t]]
+        counter += J[t]
+    end
+
+
+    return Data( X, q, Z, J, T, A, N, K, L, numInst, cMap), S, δ;
+end
+
+T = 500
+
+minJ = 15
+maxJ = 25
+
+βSim = vcat( [-2.0], rand( Uniform(0,1.0), maxJ-1))
+
+
+K = maxJ
+L = 1
+
+nSumers = 25
+
+Γ = zeros(K,K)
+for l in 1:L
+    Γ[l,l] = .2
+end
+
+
+
+#βSim = [-2.0, .5, -.25]
+
+ηSim = [.5, .3]
+
+numInst = 2
+
+priors = PriorBLP( 50.0, 0.5,
+                        zeros(K), diagm( ones(K)*.1),
+                        2.0, .1, 0.0, 1.0,
+                   zeros(numInst), diagm( ones(numInst)*.1),
+                   zeros(2),.01, 3.0)
+
+
+
+lamMap = vcat( [ convert( Vector{Int64}, (10*(i-1)+1):(10*i)) for i in 1:div(T,10)])
+
+λ = ones(T)*log(5.0);
+
+tempArgs = copy(ARGS)
+
+display( tempArgs )
+
+i = tempArgs[1]
+
+
+#for i in 1:100
+    draws = rand(Normal(0.0,.1),maxJ*T)
+    ζ = rand(Normal(),nSumers,K)
+
+    data, S, δ  = BuildDataFONC( T, DiscreteUniform(minJ,maxJ), K, L, Γ, βSim, ηSim,
+                                  draws, numInst, repeat( [Uniform(0,1)], numInst),
+                                  Multinomial( 1, ones(maxJ)/maxJ ),
+                                  Poisson.( exp.(λ)), ζ, 0.0);
+
+Poisson.( exp.(λ))
+
+    searchParameters = SearchParameters( .05, 0.0, .175, .5, 0.0, 0.12, 0.12);
+
+    @save "../SimDir/J25/FONCPrice_sml25J$(i).jld2" data S δ ζ searchParameters priors lamMap βSim ηSim Γ λ
+#end
+
+
+
+
+
+#julia RunSims.jl SimDir/FONCPrice$((0 + ${SLURM_ARRAY_TASK_ID})).jld2 1 OutputDir/FONCPrice$((0 + ${SLURM_ARRAY_TASK_ID})).jld2

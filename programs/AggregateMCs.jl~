@@ -1,0 +1,588 @@
+using JLD2
+using Printf
+using CSV
+using DataFrames
+include("bayes_BLP_DP.jl")
+
+function cln(x)
+    return @sprintf "%.3f" x
+end
+
+function fixPar(x)
+    return x[1:2] * "\\%"
+end
+
+specs = ["J25/FONCPrice_big25J", "J45/FONCPrice_big45J", "J25/FONCPrice_sml25J", "J25/FONCPrice_over25J", "J25/FONCPrice_sin25J", "J3/FONCPrice_high3J"]
+specData = ["J25/FONCPrice_big25J","J45/FONCPrice_big45J", "J25/FONCPrice_sml25J", "J25/FONCPrice_over25J", "J25/FONCPrice_sin25J", "J3/FONCPrice_high3J"]
+
+
+#α,β₁, β₂, η₁, η₂, Γ₁₁, Γ₂₂, Γ₃₃, λ
+nRows = 7
+nCols = length(specs)
+colIndex = 0
+
+TableOutput = Matrix{String}(undef, nRows, nCols*7)#zeros(nRows, nCols*4  )
+TableOutput .= ""
+
+
+M = 999
+
+nSims = 100
+
+L = 1
+K = 2
+numInst = 2
+
+bigJ = 45
+
+
+for (q,spec) in enumerate(specs)
+
+    println(spec)
+
+    trueBetaSim = zeros(nSims,K)
+    trueEtaSim = zeros(nSims,K)
+    trueGamSim = zeros(nSims,K)
+
+    @load "../SimDir/"*specData[q]*"1.jld2" data S δ ζ searchParameters priors lamMap βSim ηSim Γ λ
+    
+    global colIndex
+    betaDraws = zeros(nSims,M,K);
+    etaDraws = zeros(nSims,M,numInst);
+    gammaDraws = zeros(nSims,M,K,K);
+    lamDraws = zeros(nSims,M,data.T);
+    
+    for i in 1:nSims
+        @load "../OutputDir/FONC/$(spec)$(i).jld2" tmp
+        betaDraws[i,:,:] = copy(tmp[9][1:M,1:K]);
+        etaDraws[i,:,:] = copy(tmp[10][1:M,1:numInst]);
+        gammaDraws[i,:,:,:] = copy(tmp[end][1:M,1:K,1:K]);
+        lamDraws[i,:,:] = copy(tmp[end-2][1:M,1:data.T]);
+    end
+
+    betaSamples = zeros(nSims,K,3);
+    etaSamples = zeros(nSims,numInst,3);
+    gamSamples = zeros(nSims,K,K,3);
+    lamSamples = zeros(nSims,3);
+    betaContained = zeros(nSims,K);
+    etaContained = zeros(nSims,numInst);
+    gammaContained = zeros(nSims,K);
+    lamContained = zeros(nSims);
+    for i in 1:nSims
+        betaSamples[i,:,1] = [quantile(betaDraws[i,1:M,k], .025 ) for k in 1:K]
+        betaSamples[i,:,2] = [mean(betaDraws[i,m,k] for m in 1:M) for k in 1:K]
+        betaSamples[i,:,3] = [quantile(betaDraws[i,1:M,k], .975 ) for k in 1:K]
+
+        etaSamples[i,:,1] = [quantile(etaDraws[i,1:M,k], .025 ) for k in 1:numInst]
+        etaSamples[i,:,2] = [mean(etaDraws[i,m,k] for m in 1:M) for k in 1:numInst]
+        etaSamples[i,:,3] = [quantile(etaDraws[i,1:M,k], .975 ) for k in 1:numInst]
+
+        gamSamples[i,:,:,1] = [quantile(gammaDraws[i,1:M,k,l], .025 ) for k in 1:K, l in 1:K]
+        gamSamples[i,:,:,2] = [mean(gammaDraws[i,m,k,l] for m in 1:M) for k in 1:K, l in 1:K]
+        gamSamples[i,:,:,3] = [quantile(gammaDraws[i,1:M,k,l], .975 ) for k in 1:K, l in 1:K]
+
+        b = reshape( lamDraws[i,1:M,1:data.T], M*data.T)
+        lamSamples[i,1] = quantile( b, .025 )
+        lamSamples[i,2] = mean(b)
+        lamSamples[i,3] = quantile(b, .975 )
+    end
+
+    
+    
+
+    for k in 1:K
+        b = zeros(7)
+        b[1] = (mean(betaSamples[:,k,2])-βSim[k])
+
+        b[2] = quantile( betaSamples[:,k,2], .025 ) - βSim[k]
+        b[3] = quantile( betaSamples[:,k,2], .975 ) - βSim[k]
+        b[4] = (quantile(betaSamples[:,k,2], .5) - βSim[k])
+        b[5] = median( abs.(betaSamples[:,k,2] .- βSim[k] ) )
+        b[6] = mean( abs.(betaSamples[:,k,2] .- βSim[k] ))
+        b[7] = var( betaSamples[:,k,2] )
+        for i in 1:7
+            
+            if b[i] <= 0.0 
+                TableOutput[k,colIndex+i] = @sprintf "\$%.3f\$" b[i]
+            else
+                TableOutput[k,colIndex+i] = @sprintf "\$\\ %.3f\$" b[i]
+            end
+        end
+        
+        # for i in 1:nSims
+        #     draws = sort( betaDraws[i,:,k]  )
+        #     tot = length(draws)
+        #     drawBotLine = draws[round( Int64, tot*.025)]
+        #     drawTopLine = draws[round( Int64, tot*.975)]
+        #     #drawBotLine = minimum( draws)
+        #     #drawTopLine = maximum(draws)
+        #     if βSim[k] >= drawBotLine && βSim[k] <= drawTopLine
+        #         betaContained[i,k] = 1.0
+        #     end
+        # end
+
+        # TableOutput[k,colIndex+4] = string(mean(betaContained[i,k] for i in 1:nSims)*100.0)
+    end
+
+    for k in 1:numInst
+        b = zeros(7)
+
+        b[1] = (mean(etaSamples[:,k,2])-ηSim[k])
+
+        b[2] = quantile( etaSamples[:,k,2], .025 ) - ηSim[k]
+        b[3] = quantile( etaSamples[:,k,2], .975 ) - ηSim[k]
+        
+        b[4] = (quantile(etaSamples[:,k,2], .5) - ηSim[k])
+        b[5] = median( abs.(etaSamples[:,k,2] .- ηSim[k] ) )
+        b[6] = mean( abs.(etaSamples[:,k,2] .- ηSim[k] ) )
+        b[7] = var( betaSamples[:,k,2] )
+        for i in 1:7
+            if b[i] <= 0.0 
+                TableOutput[K+k,colIndex+i] = @sprintf "\$%.3f\$" b[i]
+            else
+                TableOutput[K+k,colIndex+i] = @sprintf "\$\\ %.3f\$" b[i]
+            end
+        end
+
+        # for i in 1:nSims
+        #     draws = sort( etaDraws[i,:,k]  )
+        #     tot = length(draws)
+        #     drawBotLine = draws[round( Int64, tot*.025)]
+        #     drawTopLine = draws[round( Int64, tot*.975)]
+        #     #drawBotLine = minimum( draws)
+        #     #drawTopLine = maximum(draws)
+        #     if ηSim[k] >= drawBotLine && ηSim[k] <= drawTopLine
+        #         etaContained[i,k] = 1.0
+        #     end
+        # end
+
+        # TableOutput[K+k,colIndex+4] = string(mean(etaContained[i,k] for i in 1:nSims)*100.0)
+    end
+
+    kCounter = K+numInst
+
+    for k in 1:L
+        b = zeros(7)
+
+        b[1] = (mean(gamSamples[:,k,k,2])-Γ[k,k])
+
+        b[2] = quantile( gamSamples[:,k,k,2], .025 ) - Γ[k,k]
+        b[3] = quantile( gamSamples[:,k,k,2], .975 ) - Γ[k,k]
+        
+
+        b[4] = (quantile(gamSamples[:,k,k,2], .5) - Γ[k,k])
+        b[5] = median( abs.(gamSamples[:,k,k,2] .- Γ[k,k] ))
+        b[6] = mean( abs.(gamSamples[:,k,k,2] .- Γ[k,k] ))
+        b[7] = var( gamSamples[:,k,k,2] )
+        for i in 1:7
+            if b[i] <= 0.0 
+                TableOutput[kCounter+k,colIndex+i] = @sprintf "\$%.3f\$" b[i]
+            else
+                TableOutput[kCounter+k,colIndex+i] = @sprintf "\$\\ %.3f\$" b[i]
+            end
+        end
+
+        # for i in 1:nSims
+        #     draws = sort( gammaDraws[i,:,k,k]  )
+        #     tot = length(draws)
+        #     drawBotLine = draws[round( Int64, tot*.025)]
+        #     drawTopLine = draws[round( Int64, tot*.975)]
+        #     #drawBotLine = minimum( draws)
+        #     #drawTopLine = maximum(draws)
+        #     if Γ[k,k] >= drawBotLine && Γ[k,k] <= drawTopLine
+        #         gammaContained[i,k] = 1.0
+        #     end
+        # end
+
+        # TableOutput[kCounter+k,colIndex+4] = string(mean(gammaContained[i,k] for i in 1:nSims)*100.0)
+    end
+    
+kCounter += L
+
+    b = zeros(7)
+
+        b[1] = (mean(lamSamples[:,2]).-λ[1])
+
+        b[2] = quantile( lamSamples[:,2], .025 ) -λ[1]
+        b[3] = quantile( lamSamples[:,2], .975 ) -λ[1]
+
+
+b[4] = (quantile(lamSamples[:,2], .5) - λ[1])
+b[5] = median( abs.(lamSamples[:,2] .- λ[1]) )
+b[6] = mean( abs.(lamSamples[:,2] .- λ[1]) )
+b[7] = var( lamSamples[:,2] )
+        for i in 1:7
+           if b[i] <= 0.0 
+            TableOutput[kCounter+1,colIndex+i] = @sprintf "\$%.3f\$" b[i]
+           else
+            TableOutput[kCounter+1,colIndex+i] = @sprintf "\$\\ %.3f\$" b[i]
+           end
+        end
+
+    kCounter += 1
+
+
+    # a = sort( reshape( lamSamples, (100*data.T)));
+    # bot = round(Int64, length(a)*.025 )
+    # top = round(Int64, length(a)*.975 )
+    # TableOutput[kCounter+1,colIndex+1] = exp(a[bot])
+    # TableOutput[kCounter+1,colIndex+2] = exp(median(a))
+    # TableOutput[kCounter+1,colIndex+3] = exp(a[top])
+    # for i in 1:nSims
+    #     draws = sort( reshape( lamDraws[i,:,:], (data.T*M)  ) );
+    #     tot = length(draws)
+    #     drawBotLine = draws[round( Int64, tot*.025)]
+    #     drawTopLine = draws[round( Int64, tot*.975)]
+    #     if λ[1] >= drawBotLine && λ[1] <= drawTopLine
+    #         lamContained[i] = 1.0
+    #     end
+    # end
+                  # TableOutput[kCounter+1,colIndex+4] = string(mean( lamContained)*100)
+    percentZeros = zeros(nSims);
+    for i in 1:nSims
+        @load "../SimDir/"*specData[q]*"$i.jld2" data S δ ζ searchParameters priors lamMap βSim ηSim Γ λ
+
+        percentZeros[i] = 1.0 - sum(data.q .!= 0) / sum(data.J)
+    end
+    b = zeros(4)
+    b[1] = mean(percentZeros)
+
+    b[2] = quantile(percentZeros, .025)
+    b[3] = quantile(percentZeros, .975)
+    b[4] = quantile(percentZeros, .5)
+    for i in 1:4
+        
+        if b[i] <= 0.0 
+            TableOutput[kCounter+1,colIndex+i] = @sprintf "\$%.3f\$" b[i]
+        else
+            TableOutput[kCounter+1,colIndex+i] = @sprintf "\$\\ %.3f\$" b[i]
+        end
+    end
+    colIndex += 7
+
+end
+
+# rowNames = ["\$\\alpha\$","\$\\beta_1\$", "\$\\beta_2\$","\$\\eta_1\$","\$\\eta_2\$",
+#             "\$\\eta_3\$", "\$\\eta_4\$",
+#             "\$\\Gamma_{11}\$","\$\\Gamma_{22}\$","\$\\Gamma_{33}\$","\$\\lambda\$" ]
+
+# colHeaders = vcat(repeat(["MedLamSim"], 4),
+#               repeat(["smallLamSim"], 4),
+#               repeat(["OverDispersed"], 4),
+#               repeat(["SingleVar"], 4))
+
+rowNames = ["\$\\alpha\$", "\$\\beta_1\$", "\$\\eta_1\$","\$\\eta_2\$",
+            "\$\\Gamma_{11}\$","\$\\lambda\$", "0 Distribution" ]
+
+
+colHeaders = vcat(repeat(["25J"], 7),
+                  repeat(["45J"], 7),
+                  repeat(["Small_Lam_25J"], 7),
+                  repeat(["Over_25J"], 7),
+                  repeat(["Sin25J"], 7),
+                  repeat(["J3"], 7))
+
+
+colNames = vcat( repeat( ["Mean", "2.5Pct.", "97.5Pct.", "Median", "Median Abs Bias", "Mean Absolute Deviation", "Variance"], nCols ) )
+
+a = convert( Vector{String}, ( vcat( ["Row Label"], colNames .* " - " .* colHeaders )) )
+
+vcat( permutedims( vcat( [""], colNames .* " - " .* colHeaders )), hcat( rowNames, TableOutput) )
+
+newdf = convert(DataFrame, hcat( rowNames, TableOutput))
+rename!(newdf, names(newdf) .=> Symbol.(a))
+
+CSV.write( "../OutputDir/simResults.csv", newdf)
+
+# truth = cln.(vcat(βSim, ηSim, [Γ[i,i] for i in 1:3], λ[1]))
+# truthSmall = cln.(vcat(βSim, ηSim, [Γ[i,i] for i in 1:3], log(5.0)))
+
+# DisplayMat = hcat(  truth, TableOutput[:,1:4])
+# DisplayMat = hcat( rowNames, truthSmall, TableOutput[:,5:8])
+# DisplayMat = hcat( rowNames, truth, TableOutput[:,9:12])
+# DisplayMat = hcat( rowNames, truth, TableOutput[:,13:16])
+
+
+# body = latexify( hcat( rowNames, TableOutput[:,1:3], fixPar.( TableOutput[:,4] ),
+#                 TableOutput[:,5:7], fixPar.( TableOutput[:,4] )), env=:table, latex=false )
+
+
+# header="Monte Carlo Simulations"
+# label1="\$\\lambda = 25\$"
+# label2="\$\\lambda = 5\$"
+# caption=""
+# footnote=""
+
+# topPart = """\\begin{table}[!htbp] \\centering
+#   \\begin{threeparttable}
+#     \\caption{$(caption)}
+#     \\label{$(header)}
+#     \\begin{tabular}{@{\\extracolsep{5pt}} lcccccccc}\\toprule
+#      &\\multicolumn{4}{c}{$(label1)} &\\multicolumn{4}{c}{$(label2)} \\\\
+#       \\cline{2-5} \\cline{6-9}\\\\
+#        & 2.5Pct. & Mean & 97.5Pct. & Coverage & 2.5Pct. & Mean & 97.5Pct. & Coverage\\\\\\midrule
+#       \\\\[-1.8ex]
+# $(string( (split( body, "\n")[2:(end-2)] .* "\n")... ))\\bottomrule \\end{tabular}
+#  \\end{threeparttable}
+#  \\begin{tablenotes}
+#   \\small
+#  \\item $(footnote)
+# \\end{tablenotes}
+# \\end{table}"""
+
+
+# header="MCTableTwo"
+# label1="\$\\lambda \sim NegBin( 25, .5)\$"
+# label2="\$Misspecified Residual\$"
+# caption="Monte Carlo Results for Misspecified Distributions"
+# footnote=""
+
+# body = latexify( hcat( rowNames, TableOutput[:,9:11], TableOutput[:,12] .* "\\%",
+#                 TableOutput[:,13:15], TableOutput[:,16] .* "\\%"), env=:table, latex=false )
+
+# topPart = """\\begin{table}[!htbp] \\centering
+#   \\begin{threeparttable}
+#     \\caption{$(caption)}
+#     \\label{$(header)}
+#     \\begin{tabular}{@{\\extracolsep{5pt}} lcccccccc}\\toprule
+#      &\\multicolumn{4}{c}{$(label1)} &\\multicolumn{4}{c}{$(label2)} \\\\
+#       \\cline{2-5} \\cline{6-9}\\\\
+#        & 2.5Pct. & Mean & 97.5Pct. & Coverage & 2.5Pct. & Mean & 97.5Pct. & Coverage\\\\\\midrule
+#       \\\\[-1.8ex]
+# $(string( (split( body, "\n")[2:(end-2)] .* "\n")... ))\\bottomrule \\end{tabular}
+#  \\end{threeparttable}
+#  \\begin{tablenotes}
+#   \\small
+#  \\item $(footnote)
+# \\end{tablenotes}
+# \\end{table}"""
+
+
+
+
+
+
+
+# HResults = ["0.760" "-0.360" "1.250" "-3.030" "-7.620" "-1.290";
+# "-0.230" "-0.730" "-0.010" "0.030" "-5.280" "1.530";
+# "-0.020" "-1.540" "0.280" "-1.620" "-12.020" "0.300";
+# "--" "--" "--" "--" "--" "--";
+# "--" "--" "--" "--" "--" "--";
+# "-0.110" "-0.550" "0.710" "-0.060" "-1.310" "1.080";
+# "-0.100" "-0.580" "1.180" "0.480" "-1.780" "5.340";
+# "0.000" "-0.630" "2.360" "0.520" "-3.830" "7.160";
+#             "--" "--" "--" "--" "--" "--"]
+
+# resultMat = Matrix{String}(undef,size(TableOutput,1)*2, 5);
+
+# for row in 1:size(TableOutput,1)
+#     resultMat[(row-1)*2+1,:] = hcat( rowNames[row], TableOutput[row,1], TableOutput[row,4],
+#                                    HResults[row,1],  HResults[row,4] )
+#     resultMat[(row-1)*2+2,:] = hcat( "", "($(TableOutput[row,2]), $(TableOutput[row,3]))", "",
+#                                      "($(HResults[row,3]), $(HResults[row,4]))",
+#                                      "($(HResults[row,5]), $(HResults[row,6]))" )
+# end
+
+# HResultSmallLam = ["\\ 1.350" "\\ 1.010" "\\ 1.670" "-1.690" "-5.410" "\\ 0.210";
+# "-0.350" "-0.610" "-0.130" "\\ 0.120" "-2.520" "\\ 1.110";
+# "\\ 0.180" "-0.050" "\\ 0.450" "-1.110" "-13.440" "\\ 0.520";
+# "--" "--" "--" "--" "--" "--"
+# "--" "--" "--" "--" "--" "--"
+# "-0.200" "-0.310" "-0.090" "-0.050" "-1.000" "\\ 1.080";
+# "-0.180" "-0.420" "\\ 0.010" "-0.140" "-2.470" "\\ 2.790";
+# "-0.220" "-0.630" "\\ 0.090" "\\ 0.020" "-3.440" "\\ 5.620";
+# "--" "--" "--" "--" "--" "--"]
+
+# resultMatSmall = Matrix{String}(undef,size(TableOutput,1)*2, 5);
+
+# for row in 1:size(TableOutput,1)
+#     resultMatSmall[(row-1)*2+1,:] = hcat( rowNames[row], TableOutput[row,5], TableOutput[row,8],
+#                                           HResultSmallLam[row,1],  HResultSmallLam[row,4] )
+
+#     if HResultSmallLam[row,3] != "--"
+#         resultMatSmall[(row-1)*2+2,:] = hcat( "", "($(TableOutput[row,6]), $(TableOutput[row,7]))", "",
+#                                               "($(HResultSmallLam[row,3]), $(HResultSmallLam[row,4]))",
+#                                               "($(HResultSmallLam[row,5]), $(HResultSmallLam[row,6]))" )
+#     else
+#        resultMatSmall[(row-1)*2+2,:] = hcat( "", "($(TableOutput[row,6]), $(TableOutput[row,7]))", "",
+#                                               "",
+#                                              "" )
+#     end
+    
+# end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# a = histogram( gamSamples[:,1,1])
+# #vline!( [βSim[1]])
+# vline!( [Γ[1,1]])
+# b = histogram( gamSamples[:,2,2])
+# vline!( [Γ[2,2]])
+# #vline!( [βSim[2]])
+# c = histogram( gamSamples[:,3,3])
+# vline!( [Γ[3,3]])
+# #vline!( [βSim[3]])
+# plot( a,b,c)
+
+# # for i in 1:100
+# #     textSingleVar="""#!/bin/bash
+# #     #SBATCH --job-name=SingleVar$(i)
+# #     #SBATCH --output=SingleVar$(i).out
+# #     #SBATCH --error=SingleVar$(i)_Errors.err
+# #     #SBATCH --time=6:00:00
+# #     #SBATCH --partition=broadwl
+# #     #SBATCH --nodes=1
+# #     #SBATCH --ntasks-per-node=1
+# #     #SBATCH --mem-per-cpu=5000
+
+# #     module load julia/1.4.2
+# #     julia RunSims.jl SimDir/SingleVar.jld2 1 OutputDir/SingleVarOutput$(i).jld2"""
+
+# #     textSmallLam="""#!/bin/bash
+# #     #SBATCH --job-name=SmallLam$(i)
+# #     #SBATCH --output=SmallLam$(i).out
+# #     #SBATCH --error=SmallLam$(i)_Errors.err
+# #     #SBATCH --time=6:00:00
+# #     #SBATCH --partition=broadwl
+# #     #SBATCH --nodes=1
+# #     #SBATCH --ntasks-per-node=1
+# #     #SBATCH --mem-per-cpu=5000
+
+# #     module load julia/1.4.2
+# #     julia RunSims.jl SimDir/smallLamSim.jld2 1 OutputDir/SmallLam$(i).jld2"""
+
+# #     textOverDispersed="""#!/bin/bash
+# #     #SBATCH --job-name=OverDispersed$(i)
+# #     #SBATCH --output=OverDispersed$(i).out
+# #     #SBATCH --error=OverDispersed$(i)_Errors.err
+# #     #SBATCH --time=6:00:00
+# #     #SBATCH --partition=broadwl
+# #     #SBATCH --nodes=1
+# #     #SBATCH --ntasks-per-node=1
+# #     #SBATCH --mem-per-cpu=5000
+
+# #     module load julia/1.4.2
+# #     julia RunSims.jl SimDir/OverDispersed.jld2 5 OutputDir/OverDispersed$(i).jld2"""
+
+# #     textMedLam="""#!/bin/bash
+# #     #SBATCH --job-name=MedLam$(i)
+# #     #SBATCH --output=MedLam$(i).out
+# #     #SBATCH --error=MedLam$(i)_Errors.err
+# #     #SBATCH --time=6:00:00
+# #     #SBATCH --partition=broadwl
+# #     #SBATCH --nodes=1
+# #     #SBATCH --ntasks-per-node=1
+# #     #SBATCH --mem-per-cpu=5000
+
+# #     module load julia/1.4.2
+# #     julia RunSims.jl SimDir/MedLamSim.jld2 5 OutputDir/MedLam$(i).jld2"""
+
+# #     io = open("SingleVar$(i).sbatch", "w")
+# #     write(io, textSingleVar)
+# #     close(io)
+
+# #     io = open("SmallLam$(i).sbatch", "w")
+# #     write(io, textSmallLam)
+# #     close(io)
+
+# #     io = open("OverDispersed$(i).sbatch", "w")
+# #     write(io, textOverDispersed)
+# #     close(io)
+
+# #     io = open("MedLam$(i).sbatch", "w")
+# #     write(io, textMedLam)
+# #     close(io)
+# # end
+
+# # for i in 1:100
+# #     println("sbatch SingleVar$(i).sbatch")
+# # end
+
+# # for i in 1:100
+# #     println("sbatch SmallLam$(i).sbatch")
+# # end
+
+# # for i in 1:100
+# #     println("sbatch OverDispersed$(i).sbatch")
+# # end
+
+# # for i in 1:100
+# #     println("sbatch MedLam$(i).sbatch")
+# # end
+
+
+
+# for (q,spec) in enumerate(specs)
+
+#     @load "SimDir/"*specData[q] data S δ ζ searchParameters priors lamMap βSim ηSim Γ λ
+
+#     bigJ = maximum(data.J)
+#     global colIndex
+#     elasNumbers = zeros(100,data.T,bigJ);
+#     betaDraws = zeros(100,M,data.K);
+#     etaDraws = zeros(100,M,data.numInst);
+#     gammaDraws = zeros(100,M,data.K,data.K);
+#     for i in 1:100
+#         @load "OutputDir/$(spec)$(i).jld2" tmp
+
+#         betaMean = tmp[1]
+#         shareMean = tmp[7]
+#         gamMean = tmp[8]
+        
+#         betaDraws[i,:,:] = copy(tmp[9][1:M,1:data.K]);
+#         etaDraws[i,:,:] = copy(tmp[10][1:M,1:data.numInst]);
+#         gammaDraws[i,:,:,:] = copy(tmp[end][1:M,1:data.K,1:data.K]);
+#         lamDraws[i,:,:] = copy(tmp[end-2][1:M,1:data.T]);
+#     end
+
+#     betaMean = mean( tmp[i][1] for i in 1:100 )
+# etaMean = mean( tmp[i][2] for i in 1:100 )
+# μMean = mean( tmp[i][3] for i in 1:100 )
+# SigmaMean = mean( tmp[i][4] for i in 1:100 )
+# piMean = mean( tmp[i][5] for i in 1:100 )
+# lamTMean = mean( tmp[i][6] for i in 1:100 )
+# shareMean = mean( tmp[i][7] for i in 1:100 )
+# gamMean = mean( tmp[i][8] for i in 1:100 )
+
+
+#     betaSamples = zeros(100,data.K,3);
+#     etaSamples = zeros(100,data.numInst,3);
+#     gamSamples = zeros(100,data.K,data.K,3);
+#     lamSamples = zeros(100,3);
+#     betaContained = zeros(100,data.K);
+#     etaContained = zeros(100,data.numInst);
+#     gammaContained = zeros(100,data.K);
+#     lamContained = zeros(100);
+#     for i in 1:100
+#         betaSamples[i,:,1] = [quantile(betaDraws[i,1:M,k], .025 ) for k in 1:data.K]
+#         betaSamples[i,:,2] = [mean(betaDraws[i,m,k] for m in 1:M) for k in 1:data.K]
+#         betaSamples[i,:,3] = [quantile(betaDraws[i,1:M,k], .975 ) for k in 1:data.K]
+
+#         etaSamples[i,:,1] = [quantile(etaDraws[i,1:M,k], .025 ) for k in 1:data.numInst]
+#         etaSamples[i,:,2] = [mean(etaDraws[i,m,k] for m in 1:M) for k in 1:data.numInst]
+#         etaSamples[i,:,3] = [quantile(etaDraws[i,1:M,k], .975 ) for k in 1:data.numInst]
+
+#         gamSamples[i,:,:,1] = [quantile(gammaDraws[i,1:M,k,l], .025 ) for k in 1:data.K, l in 1:data.K]
+#         gamSamples[i,:,:,2] = [mean(gammaDraws[i,m,k,l] for m in 1:M) for k in 1:data.K, l in 1:data.K]
+#         gamSamples[i,:,:,3] = [quantile(gammaDraws[i,1:M,k,l], .975 ) for k in 1:data.K, l in 1:data.K]
+
+#         b = reshape( lamDraws[i,1:M,1:data.T], M*data.T)
+#         lamSamples[i,1] = quantile( b, .025 )
+#         lamSamples[i,2] = mean(b)
+#         lamSamples[i,3] = quantile(b, .975 )
+#     end
+# end

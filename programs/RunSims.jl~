@@ -1,0 +1,165 @@
+using Distributions
+using LinearAlgebra
+using Contour
+using JLD2
+
+include("bayes_BLP_DP.jl")
+
+function RunEstim( fileName, nMixtures)
+
+    @load fileName data S δ ζ searchParameters priors lamMap βSim ηSim Γ λ
+
+    denom = zeros(2)
+    bigJ = maximum(data.J)
+    shareHolder = zeros(bigJ)
+    solutionFill = zeros(data.T,bigJ);
+
+    LMarket = zeros(data.T);
+    LMarketTemp = zeros(data.T);
+
+    shareJacLDet = zeros(data.T);
+    Jac = Vector{Matrix{Float64}}(undef,data.T);
+    sJac = Vector{Matrix{Float64}}(undef,data.T);
+    warmStart = zeros(data.T,bigJ);
+    for t in 1:data.T
+        Jac[t] = zeros(data.J[t],data.J[t])
+    end
+    delta = zeros(bigJ)
+
+    util = Utility( denom, shareHolder, solutionFill, LMarket, LMarketTemp, Jac, sJac, delta,
+                    warmStart,  shareJacLDet);
+    M = 6000
+
+    burnout = 4000
+
+    # burnout = 0
+    # M = 2000
+    
+
+
+    betaDraws, etaDraws, μ, Σ, π, xi, upsilon,lamT, shareDraws, gammaDraws =
+        DoMCMC(data, searchParameters, M, ζ, util, priors, lamMap, nMixtures, burnout,
+               S, δ, βSim, ηSim, Γ, λ);
+
+
+    betaMean = [mean( betaDraws[:,k]) for k in 1:data.K]
+    println( "betaMean: $betaMean")
+    etaMean = [mean( etaDraws[:,k]) for k in 1:data.numInst]
+    println( "etaMean: $etaMean")
+    μMean = [mean( μ[:,k,i]) for k in 1:nMixtures, i in 1:2]
+    println( "μMean: $μMean")
+    ΣMean = [mean(Σ[:,k,i,j]) for i in 1:2, j in 1:2, k in 1:nMixtures]
+    println( "ΣMean: $ΣMean")
+    πMean = [mean( π[:,k]) for k in 1:nMixtures]
+    println( "πMean: $πMean")
+    lamTMean = [mean( exp.(lamT[:,t])) for t in 1:data.T]
+    println( "lamTMean: $lamTMean")
+    shareTMean = [sum( mean( shareDraws[m,t,j] for m in 1:(size(shareDraws,1)-1))
+                       for j in 1:data.J[t]) for t in 1:data.T]
+    println( "shareTMean: $shareTMean")
+
+    gamMean = [mean( gammaDraws[:,i,j]) for i in 1:data.K, j in 1:data.K]
+    println( "gamMean: $gamMean")
+
+    return betaMean, etaMean, μMean, ΣMean, πMean, lamTMean, shareTMean, gamMean, betaDraws, etaDraws, μ, Σ, π, xi, upsilon,lamT, shareDraws, gammaDraws
+end
+
+
+tempArgs = copy(ARGS)
+
+display( tempArgs )
+
+fileName = tempArgs[1]
+maxMixtures = parse(Int, tempArgs[2])
+outputName = tempArgs[3]
+
+tmp = RunEstim( fileName, maxMixtures);
+
+@save outputName tmp
+
+
+# A = tmp;
+
+# betaMean = A[1]
+# etaMean = A[2]
+# μMean = A[3];
+# ΣMean = A[4];
+# πMean = A[5];
+# lamTMean = A[6];
+# shareTMean = A[7];
+# gamMean = A[8]
+
+# betaDraws = A[9];
+# # etaDraws = A[10];
+# # μ = A[11];
+# # Σ = A[12];
+# # π = A[13];
+# # xi = A[14];
+# # upsilon = A[15];
+# shareDraws = A[end-1];
+# gammaDraws = A[end];
+
+
+
+
+# length( unique( gammaDraws[:,1,1] ) ) / length( ( gammaDraws[:,1,1] ) )
+
+# shareAccept = zeros(data.T);
+# for t in 1:data.T
+#     shareAccept[t] = length( unique( shareDraws[:,t,1])) /
+#         length( ( shareDraws[:,t,1]))
+# end
+
+# # plot( 1:data.T, [mean(lamT[:,t] ) for t in 1:data.T] )
+# # plot!( 1:data.T, [log(data.searches[t]) for t in 1:data.T] )
+# # hline!( [log(25.0)])
+# # savefig("lamTest.pdf")
+
+# # #gMat = gammaDraws[:,:,:] .* gammaDraws[:,:,:]';
+
+
+# a = histogram( shareDraws[1:(end-1),2,1])
+# vline!( [S[2,1]])
+# b = histogram(shareDraws[1:(end-1),2,2])
+# vline!( [S[2,2]])
+# c = histogram(shareDraws[1:(end-1),2,3])
+# vline!( [S[2,3]])
+# plot(a,b,c)
+# savefig("shareTest.pdf")
+
+# a = histogram( betaDraws[300:(end-1),1])
+# vline!( [βSim[1]])
+# b = histogram(betaDraws[300:(end-1),2])
+# vline!( [βSim[2]])
+# c = histogram(betaDraws[300:(end-1),3])
+# vline!( [βSim[3]])
+# plot(a,b,c)
+# savefig("betaTest.pdf")
+
+# a = histogram( etaDraws[1:(end-1),1])
+# vline!( [ηSim[1]])
+# b = histogram(etaDraws[1:(end-1),2])
+# vline!( [ηSim[2]])
+
+# plot( a,b  )
+# savefig("etaTest.pdf")
+
+# plot( [sum( (mean( shareDraws[m,t,j] for m in 1:(size(shareDraws,1)-1)) - S[t,j]) for j in 1:data.J[t])
+#            for t in 1:data.T])
+# # plot!( [sum( S[t,j] for j in 1:data.J[t]) for t in 1:data.T])
+# plot!( [sum( (data.searches[t] != 0)*((data.q[t,j] / data.searches[t]) - S[t,j])  for j in 1:data.J[t]) for t in 1:data.T])
+# savefig("sharePictureTest.pdf")
+
+
+# plot( [sum(sum( mean( shareDraws[m,t,j]*exp(lamT[m,t]) for m in 1:(size(shareDraws,1)-1))
+#             for j in 1:data.J[t]) for t in tCol) for tCol in lamMap])
+# plot!( [sum(sum( S[t,j]*25.0 for j in 1:data.J[t]) for t in tCol) for tCol in lamMap])
+# plot!( [sum(sum( data.q[t,j] for j in 1:data.J[t]) for t in tCol) for tCol in lamMap])
+# savefig("purchaseTest.pdf")
+
+# expectedPurchases = [sum(S[t,j]*25.0 for j in 1:data.J[t]) for t in 1:data.T]
+# modelPurchases = [sum(mean( shareDraws[m,t,j]*exp(lamT[m,t]) for m in 1:(size(shareDraws,1)-1)) for j in 1:data.J[t]) for t in 1:data.T]
+# realizedPurchases = [sum(data.q[t,j] for j in 1:data.J[t]) for t in 1:data.T]
+
+# # histogram( (modelPurchases - expectedPurchases) ./ expectedPurchases, alpha =.5, xlims=(-1.0,5.0) )
+# # histogram!( (realizedPurchases - expectedPurchases) ./ expectedPurchases, alpha = .5, xlims=(-1.0,5.0) )
