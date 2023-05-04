@@ -10,7 +10,7 @@ This version: May 3, 2023
 
 # Description
 
-Julia code for 
+Julia code for replicating the Monte-Carlo excercises in Demand Estimation with Infrequent Purchases and Small Market Sizes. This code simulates markets which price based on a simultaneous move Nash-Betrand Equilibrium with small number of arrivals, leading to high numbers of zeros in purchases. The code then estimates preferences using a Hybrid-Gibbs Sampler MCMC estimator. 
 
 
 # License
@@ -42,7 +42,8 @@ Tested in Julia 0.XXXX on Linux servers (64-bit)
           6. alpha; the price sensitivity parameter.
           7. Γ; The random coefficient on the price sensitivity parameter.
           8. UseNegBinom; True or False whether or not to use a Negative Binomial distribution for the search distribution.
-          9. SearchDistParameter; If UseNegBinom == "false", then this is a single float64 that gives the poisson arrival rate. If UseNegBinom == "true" tehn this is a string that contains two float64 values separated by a comma that gives the parameters for the negative binomial distribution. i.e. "25.0,.5"
+          9. SearchDistParameter; If UseNegBinom == "false", then this is a single float64 that gives the poisson arrival rate.
+                                  If UseNegBinom == "true" then this is a string that contains two float64 values separated by a comma that gives the parameters for the negative binomial distribution. i.e. "25.0,.5"
           10. searchSigmaDiag; The variance of the candidate distribution used by the Metropolis-Hastings step for the diagonal elements of Gamma.
           11. searchSigmaOffDiag; The variance of the candidate distribution used by the Metropolis-Hastings step for the off-diagonal elements of Gamma.
           12. searchDScale; The variance of the candidate distribution used by the Metropolis-Hastings step for the share draws.
