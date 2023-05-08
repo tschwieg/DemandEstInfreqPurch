@@ -145,16 +145,21 @@ lamMap = vcat( [ convert( Vector{Int64}, (10*(i-1)+1):(10*i)) for i in 1:div(T,1
 
 arrivalDist = []
 
+λ = ones(T)
+
 ## We have a flag for what distribution to use, if NegativeBinomial,
 ## then the next args will be 1,2 so we use split and then parse it.
 if ARGS[8] == "true"
     params = parse.( Float64, split( ARGS[9], ",") )
     arrivalDist = repeat( [NegativeBinomial(params[1], params[2])], T)
+    λ = ones(T)*log(mean(NegativeBinomial(params[1], params[2])))
 else
     ## If we're just a poisson, the rate is just ARGS[9]
     λ = ones(T)*log(parse( Float64, ARGS[9]))
     arrivalDist = Poisson.( exp.(λ))
 end
+
+
 
 
 

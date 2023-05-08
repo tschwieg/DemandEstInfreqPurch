@@ -20,9 +20,126 @@ The material is made available through the Quantitative Economics web page as su
 
 # Requirements
 
-- Julia 1.0 or later version.
-
 Tested in Julia 0.XXXX on Linux servers (64-bit)
+Package versions:
+CSV v0.6.2
+CodecZlib v0.7.0
+Contour v0.5.7
+DataFrames v0.21.8
+Distributions v0.25.10
+FixedEffectModels v1.6.2
+ForwardDiff v0.10.18
+GLM v1.5.1
+GZip v0.5.1
+JLD2 v0.4.3
+JuMP v0.21.8
+KNITRO v0.10.0
+KernelDensity v0.6.3
+Latexify v0.15.18
+Optim v1.7.3
+Plots v1.18.2
+PyPlot v2.9.0
+Query v1.0.0
+SpecialFunctions v1.6.2
+StatsBase v0.33.8
+StatsPlots v0.14.30
+Tables v1.4.4
+TranscodingStreams v0.9.5
+
+python:
+2:42
+knitro==12.3.0
+zipp==3.6.0
+yarl==1.6.3
+wrapt==1.12.1
+wheel==0.37.0
+Werkzeug==2.0.1
+urllib3==1.26.7
+typing-extensions==3.10.0.2
+tornado==6.1
+threadpoolctl==3.0.0
+termcolor==1.1.0
+tensorflow==2.4.1
+tensorflow-estimator==2.6.0
+tensorboard==2.4.0
+tensorboard-plugin-wit==1.6.0
+statsmodels==0.12.2
+six==1.16.0
+sip==4.19.13
+setuptools==58.0.4
+seaborn==0.11.2
+scipy==1.7.1
+scikit-learn==0.24.2
+rsa==4.7.2
+requests==2.26.0
+requests-oauthlib==1.3.0
+PyYAML==5.4.1
+pytz==2021.1
+python-dateutil==2.8.2
+PySocks==1.7.1
+pyparsing==3.0.4
+pyOpenSSL==20.0.1
+PyJWT==2.1.0
+pycparser==2.20
+pyasn1==0.4.8
+pyasn1-modules==0.2.8
+pyarrow==3.0.0
+protobuf==3.17.2
+property-cached==1.6.4
+pip==21.2.4
+Pillow==8.4.0
+patsy==0.5.2
+pandas==1.3.3
+packaging==21.3
+opt-einsum==3.3.0
+olefile==0.46
+oauthlib==3.1.1
+numpy==1.20.3
+numexpr==2.7.3
+mypy-extensions==0.4.3
+munkres==1.1.4
+multidict==5.1.0
+mkl-service==2.4.0
+mkl-random==1.2.2
+mkl-fft==1.3.0
+matplotlib==3.5.0
+Markdown==3.3.4
+linearmodels==4.24
+kiwisolver==1.3.1
+Keras==2.4.3
+Keras-Preprocessing==1.1.2
+joblib==1.1.0
+jaxlib==0.1.71+cuda111
+jax==0.2.21
+importlib-metadata==4.8.1
+idna==3.2
+h5py==2.10.0
+grpcio==1.36.1
+google-pasta==0.2.0
+google-auth==1.33.0
+google-auth-oauthlib==0.4.4
+gast==0.4.0
+fonttools==4.25.0
+flatbuffers==2.0
+Cython==0.29.24
+cycler==0.11.0
+cryptography==3.4.8
+coverage==5.5
+click==8.0.1
+charset-normalizer==2.0.4
+chardet==4.0.0
+cffi==1.14.6
+certifi==2021.10.8
+cachetools==4.2.2
+brotlipy==0.7.0
+Bottleneck==1.3.2
+blinker==1.4
+attrs==21.2.0
+async-timeout==3.0.1
+astunparse==1.6.3
+astor==0.8.1
+aiohttp==3.7.4.post0
+absl-py==0.13.0
 
 
 # Contents
@@ -80,23 +197,35 @@ Tested in Julia 0.XXXX on Linux servers (64-bit)
 
 # Replication instructions
 
-Here we describe how to replicate the figures reported in the paper. The PNG files referenced below will be generated after running the code.
+Here we describe how to replicate the estimates and figures reported in the paper.
 
-Ensure the working directory is MCMethods/programs/
+Ensure the working directory is DemandEstInfreqPurch/programs/
 
-## TODO: Resolve Slurm Issues?
+Much of the code can be run in parallel, we chose to do so using a
+schedule manager, Slurm. It is possible to do this with other
+scheduling software, or out of parallel using a for loop in your shell
+language of choice. In all places in the replication, simply replace
+$((0 + ${SLURM_ARRAY_TASK_ID})) with the appropriate index. In our
+case, these calls are placed in individual slurm batch files, using
+the following flags.
+
+#SBATCH --ntasks=1
+#SBATCH --nodes=1
+#SBATCH --mem=64G
+#SBATCH --array=1-100
+
 
 0. Ensuring the Correct File structure exists
 
 sh EnsureFileStructure.sh
 
 1. Simulating Data
-julia SimFONC.jl $((0 + ${SLURM_ARRAY_TASK_ID})) FONCPrice_big25J 500 15 25 -2.0 .2 false 25.0 .05 0.0 .175
-julia SimFONC.jl $((0 + ${SLURM_ARRAY_TASK_ID})) FONCPrice_big45J 500 40 45 -2.0 .2 false 25.0 .05 0.0 .175
-julia SimFONC.jl $((0 + ${SLURM_ARRAY_TASK_ID})) FONCPrice_sml25J 500 15 25 -2.0 .2 false 5.0 .05 0.0 .175
-julia SimFONC.jl $((0 + ${SLURM_ARRAY_TASK_ID})) FONCPrice_over25J 500 15 25 -2.0 .2 true 25.0,.5 .05 0.0 .175
-julia SimFONC.jl $((0 + ${SLURM_ARRAY_TASK_ID})) FONCPrice_sin25J 500 15 25 -2.0 .2 false 25.0 .05 0.0 .175
-julia SimFONC.jl $((0 + ${SLURM_ARRAY_TASK_ID})) FONCPrice_high3J 500 3 3 -2.0 .2 false 25.0 .05 0.0 .175
+julia SimFONC.jl $((0 + ${SLURM_ARRAY_TASK_ID})) J25/FONCPrice_big25J 500 15 25 -2.0 .2 false 25.0 1.875 0.0 0.12817
+julia SimFONC.jl $((0 + ${SLURM_ARRAY_TASK_ID})) J45/FONCPrice_big45J 500 40 45 -2.0 .2 false 25.0 0.855 0.0 0.064575
+julia SimFONC.jl $((0 + ${SLURM_ARRAY_TASK_ID})) J25/FONCPrice_sml25J 500 15 25 -2.0 .2 false 5.0 1.5 0.0 0.13125
+julia SimFONC.jl $((0 + ${SLURM_ARRAY_TASK_ID})) J25/FONCPrice_over25J 500 15 25 -2.0 .2 true 25.0,.5 1.5 0.0 0.13125
+julia SimFONC.jl $((0 + ${SLURM_ARRAY_TASK_ID})) J25/FONCPrice_sin25J 500 15 25 -2.0 .2 false 25.0 .9 0.0 0.10382
+julia SimFONC.jl $((0 + ${SLURM_ARRAY_TASK_ID})) J3/FONCPrice_high3J 500 3 3 -2.0 .2 false 25.0 0.196875 0.0 0.21875
 
 2. Calling Estimation
 
@@ -109,6 +238,8 @@ julia RunSims.jl ../SimDir/J25/FONCPrice_sml25J$((0 + ${SLURM_ARRAY_TASK_ID})).j
 julia RunSims.jl ../SimDir/J25/FONCPrice_over25J$((0 + ${SLURM_ARRAY_TASK_ID})).jld2 25 ../OutputDir/FONC/J25/FONCPrice_over25J$((0 + ${SLURM_ARRAY_TASK_ID})).jld2
 
 julia RunSims.jl ../SimDir/J25/FONCPrice_sin25J$((0 + ${SLURM_ARRAY_TASK_ID})).jld2 1 ../OutputDir/FONC/J25/FONCPrice_sin25J$((0 + ${SLURM_ARRAY_TASK_ID})).jld2
+
+julia RunSims.jl ../SimDir/J3/FONCPrice_high3J$((0 + ${SLURM_ARRAY_TASK_ID})).jld2 25 ../OutputDir/FONC/J3/FONCPrice_high3J$((0 + ${SLURM_ARRAY_TASK_ID})).jld2
 
 
 3. Aggregating Output
