@@ -225,7 +225,7 @@ julia SimFONC.jl $((0 + ${SLURM_ARRAY_TASK_ID})) J45/FONCPrice_big45J 500 40 45 
 julia SimFONC.jl $((0 + ${SLURM_ARRAY_TASK_ID})) J25/FONCPrice_sml25J 500 15 25 -2.0 .2 false 5.0 1.5 0.0 0.13125
 julia SimFONC.jl $((0 + ${SLURM_ARRAY_TASK_ID})) J25/FONCPrice_over25J 500 15 25 -2.0 .2 true 25.0,.5 1.5 0.0 0.13125
 julia SimFONC.jl $((0 + ${SLURM_ARRAY_TASK_ID})) J25/FONCPrice_sin25J 500 15 25 -2.0 .2 false 25.0 .9 0.0 0.10382
-julia SimFONC.jl $((0 + ${SLURM_ARRAY_TASK_ID})) J3/FONCPrice_high3J 500 3 43 -2.0 .2 false 200.0 0.196875 0.0 0.21875
+julia SimFONC.jl $((0 + ${SLURM_ARRAY_TASK_ID})) J3/FONCPrice_high3J 500 3 4 -2.0 .2 false 200.0 0.196875 0.0 0.21875
 
 2. Calling Estimation
 
