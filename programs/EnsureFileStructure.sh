@@ -5,3 +5,7 @@ mkdir ../OutputDir
 mkdir ../OutputDir/FONC
 mkdir ../OutputDir/FONC/J25
 mkdir ../OutputDir/FONC/J45
+mkdir ../OutputDir/FONC/blpJ25
+mkdir ../OutputDir/FONC/blpJ45
+mkdir ../OutputDir/FONC/glsJ25
+mkdir ../OutputDir/FONC/glsJ45
