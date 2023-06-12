@@ -10,7 +10,7 @@ This version: May 3, 2023
 
 # Description
 
-Julia code for replicating the Monte-Carlo excercises in Demand Estimation with Infrequent Purchases and Small Market Sizes. This code simulates markets which price based on a simultaneous move Nash-Betrand Equilibrium with small number of arrivals, leading to high numbers of zeros in purchases. The code then estimates preferences using a Hybrid-Gibbs Sampler MCMC estimator. 
+Julia code for replicating the Monte-Carlo excercises in Demand Estimation with Infrequent Purchases and Small Market Sizes. This code simulates markets which price based on a simultaneous move Nash-Betrand Equilibrium with small number of arrivals, leading to high numbers of zeros in purchases. The code then estimates preferences using a Hybrid-Gibbs Sampler MCMC estimator. Alternative estimator optimization uses Artleys Knitro version 12.3.0. A license can be obtained from https://www.artelys.com/solvers/knitro/. Alternatively, SciPy or a custom, user routine may be used instead.
 
 
 # License
@@ -143,6 +143,7 @@ astor==0.8.1
 aiohttp==3.7.4.post0
 absl-py==0.13.0
 
+KNITRO version 12.3.0
 
 # Contents
 
