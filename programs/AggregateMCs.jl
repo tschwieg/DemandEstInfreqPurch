@@ -220,7 +220,7 @@ colHeaders = vcat(repeat(["25J"], 7),
                   repeat(["J3"], 7))
 
 
-colNames = vcat( repeat( ["Mean", "2.5Pct.", "97.5Pct.", "Median", "Median Abs Bias", "Mean Absolute Deviation", "Variance"], nCols ) )
+colNames = vcat( repeat( ["Mean", "2.5Pct.", "97.5Pct.", "Median", "Median Abs Bias", "Mean Absolute Deviation", "MSE"], nCols ) )
 
 a = convert( Vector{String}, ( vcat( ["Row Label"], colNames .* " - " .* colHeaders )) )
 
