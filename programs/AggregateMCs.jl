@@ -103,7 +103,7 @@ for (q,spec) in enumerate(specs)
         b[4] = (quantile(betaSamples[:,k,2], .5) - βSim[k])
         b[5] = median( abs.(betaSamples[:,k,2] .- βSim[k] ) )
         b[6] = mean( abs.(betaSamples[:,k,2] .- βSim[k] ))
-        b[7] = var( betaSamples[:,k,2] )
+        b[7] = mean((betaSamples[:,k,2] .- βSim[k] ).^2)#var( betaSamples[:,k,2] )
         for i in 1:7
             
             if b[i] <= 0.0 
@@ -126,7 +126,7 @@ for (q,spec) in enumerate(specs)
         b[4] = (quantile(etaSamples[:,k,2], .5) - ηSim[k])
         b[5] = median( abs.(etaSamples[:,k,2] .- ηSim[k] ) )
         b[6] = mean( abs.(etaSamples[:,k,2] .- ηSim[k] ) )
-        b[7] = var( betaSamples[:,k,2] )
+        b[7] = mean((etaSamples[:,k,2] .- ηSim[k] ).^2)
         for i in 1:7
             if b[i] <= 0.0 
                 TableOutput[K+k,colIndex+i] = @sprintf "\$%.3f\$" b[i]
@@ -151,7 +151,7 @@ for (q,spec) in enumerate(specs)
         b[4] = (quantile(gamSamples[:,k,k,2], .5) - Γ[k,k])
         b[5] = median( abs.(gamSamples[:,k,k,2] .- Γ[k,k] ))
         b[6] = mean( abs.(gamSamples[:,k,k,2] .- Γ[k,k] ))
-        b[7] = var( gamSamples[:,k,k,2] )
+        b[7] = mean((gamSamples[:,k,k,2] .- Γ[k,k] ).^2)
         for i in 1:7
             if b[i] <= 0.0 
                 TableOutput[kCounter+k,colIndex+i] = @sprintf "\$%.3f\$" b[i]
@@ -172,7 +172,7 @@ for (q,spec) in enumerate(specs)
     b[4] = (quantile(lamSamples[:,2], .5) - λ[1])
     b[5] = median( abs.(lamSamples[:,2] .- λ[1]) )
     b[6] = mean( abs.(lamSamples[:,2] .- λ[1]) )
-    b[7] = var( lamSamples[:,2] )
+    b[7] = mean((lamSamples[:,2] .- λ[1] ).^2)
     for i in 1:7
         if b[i] <= 0.0 
             TableOutput[kCounter+1,colIndex+i] = @sprintf "\$%.3f\$" b[i]

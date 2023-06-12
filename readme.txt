@@ -20,7 +20,9 @@ The material is made available through the Quantitative Economics web page as su
 
 # Requirements
 
-Tested in Julia 0.XXXX on Linux servers (64-bit)
+UNIX or UNIX-like Operatating system.
+
+Tested in Julia 1.6.1 on Linux servers (64-bit)
 Package versions:
 CSV v0.6.2
 CodecZlib v0.7.0
@@ -211,7 +213,6 @@ the following flags.
 
 #SBATCH --ntasks=1
 #SBATCH --nodes=1
-#SBATCH --mem=64G
 #SBATCH --array=1-100
 
 
