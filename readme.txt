@@ -5,7 +5,7 @@ Olivia R. Natan, University of California, Berkeley
 Hayden Parsley, University of Texas, Austin
 Timothy Schwieg, University of Chicago, Booth
 Kevin R. Williams, Yale School of Management and NBER
-This version: May 3, 2023
+This version: June 12, 2023
 
 
 # Description
@@ -207,7 +207,10 @@ KNITRO version 12.3.0
     ARGS: 1: simNum; The index of the simulation being run.
           2: numProds; Total number of products in simulated data.
           3: lamSpec; Market size of simulated data. Note: (numProds, lamSpec)               
-             tuple specifies which simulated data set to use. 
+             tuple specifies which simulated data set to use.
+
+- programs/constructTBLS.py: Returns the final tables used in the paper. There are no command line
+                             arguments for this file.     
 
 
 # Replication instructions
@@ -273,3 +276,5 @@ python simGLS.py ${SLURM_ARRAY_TASK_ID} 25 sml
 python simGLS.py ${SLURM_ARRAY_TASK_ID} 3 high
 
 5. Aggregating all output
+
+python constructTBLS.py
