@@ -196,6 +196,18 @@ absl-py==0.13.0
           5: minIndex; The smallest indexed sim to apply this adjustment to.
           6: maxIndex; The largest indexed sim to apply this adjustment to.
 
+- programs/simBLP.py: Given a simulated data set, the program estimates demand using BLP with different ad-hoc methods to handle zeros in empirical market shares 
+    ARGS: 1: simNum; The index of the simulation being run.
+          2: numProds; Total number of products in simulated data.
+          3: lamSpec; Market size of simulated data. Note: (numProds, lamSpec)               
+             tuple specifies which simulated data set to use. 
+
+- programs/simGLS.py: Given a simulated data set, the program estimates demand using the method of Gandhi, Lu, Shi (2023) with different adjustments. 
+    ARGS: 1: simNum; The index of the simulation being run.
+          2: numProds; Total number of products in simulated data.
+          3: lamSpec; Market size of simulated data. Note: (numProds, lamSpec)               
+             tuple specifies which simulated data set to use. 
+
 
 # Replication instructions
 
@@ -243,6 +255,20 @@ julia RunSims.jl ../SimDir/J25/FONCPrice_sin25J$((0 + ${SLURM_ARRAY_TASK_ID})).j
 julia RunSims.jl ../SimDir/J3/FONCPrice_high3J$((0 + ${SLURM_ARRAY_TASK_ID})).jld2 25 ../OutputDir/FONC/J3/FONCPrice_high3J$((0 + ${SLURM_ARRAY_TASK_ID})).jld2
 
 
-3. Aggregating Output
+3. Aggregating Julia Output
 
 julia AggregateMCs.jl
+
+4. Alternative Estimators
+
+python simBLP.py ${SLURM_ARRAY_TASK_ID} 25 big
+python simBLP.py ${SLURM_ARRAY_TASK_ID} 45 big
+python simBLP.py ${SLURM_ARRAY_TASK_ID} 25 sml
+python simBLP.py ${SLURM_ARRAY_TASK_ID} 3 high
+
+python simGLS.py ${SLURM_ARRAY_TASK_ID} 25 big
+python simGLS.py ${SLURM_ARRAY_TASK_ID} 45 big
+python simGLS.py ${SLURM_ARRAY_TASK_ID} 25 sml
+python simGLS.py ${SLURM_ARRAY_TASK_ID} 3 high
+
+5. Aggregating all output
