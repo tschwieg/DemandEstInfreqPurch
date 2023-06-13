@@ -119,7 +119,7 @@ For Exact package version details please see the end of the file.
      ARGS: 1: simName; the relative filename of the data to load. For sim i, reads input as "../SimDir/$(simName)$(i).jld2"
            2: nSims; The total number of simulations
            3: estName; Relative filename of the output from estimation. For sim i, reads from: "../OutputDir/FONC/$(estName)$(i).jld2"
-           4: outputLocl; Folder for csv output. Outputs to: "../OutputDir/$(outputLoc)/$(simName)_Beta1_Hist.csv"
+           4: outputLoc; Folder for csv output. Outputs to: "../OutputDir/$(outputLoc)/$(simName)_Beta1_Hist.csv"
 
 - programs/constructBetaPLTS.py: Constructs plots of the distribution of the posterior mean
                                  estimates of beta1. There are no command line arguments for
