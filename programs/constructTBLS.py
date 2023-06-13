@@ -3,7 +3,7 @@ from glob import glob
 import numpy as np
 
 pathPRC      = "../OutputDir/simResults.csv"
-pathOut      = "../OutputDir/"
+pathOut      = "../figures/"
 
 alpha_true   = -2.0
 gamma_true   = 0.2 

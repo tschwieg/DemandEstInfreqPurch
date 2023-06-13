@@ -11,3 +11,8 @@ mkdir ../OutputDir/FONC/blpJ25
 mkdir ../OutputDir/FONC/blpJ45
 mkdir ../OutputDir/FONC/glsJ25
 mkdir ../OutputDir/FONC/glsJ45
+mkdir ../figures
+mkdir ../OutputDir/FONC/csv
+mkdir ../OutputDir/FONC/csv/J25
+mkdir ../OutputDir/FONC/csv/J45
+mkdir ../OutputDir/FONC/csv/J3

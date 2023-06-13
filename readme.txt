@@ -10,12 +10,31 @@ This version: June 12, 2023
 
 # Description
 
-Julia code for replicating the Monte-Carlo excercises in Demand Estimation with Infrequent Purchases and Small Market Sizes. This code simulates markets which price based on a simultaneous move Nash-Betrand Equilibrium with small number of arrivals, leading to high numbers of zeros in purchases. The code then estimates preferences using a Hybrid-Gibbs Sampler MCMC estimator. Alternative estimator optimization uses Artleys Knitro version 12.3.0. A license can be obtained from https://www.artelys.com/solvers/knitro/. Alternatively, SciPy or a custom, user routine may be used instead.
+Julia code for replicating the Monte-Carlo excercises in Demand
+Estimation with Infrequent Purchases and Small Market Sizes. This code
+simulates markets which price based on a simultaneous move
+Nash-Betrand Equilibrium with small number of arrivals, leading to
+high numbers of zeros in purchases. The code then estimates
+preferences using a Hybrid-Gibbs Sampler MCMC estimator. Alternative
+estimator optimization uses Artleys Knitro version 12.3.0. A license
+can be obtained from
+https://www.artelys.com/solvers/knitro/. Alternatively, SciPy or a
+custom, user routine may be used instead.
 
 
 # License
 
-The material is made available through the Quantitative Economics web page as supplementary material. Users are licensed to download, copy, and modify the code. When doing so such users must acknowledge all authors as the original creators and Quantitative Economics as the original publishers. In practice, this means that anyone using the material held within the replication package zip must (i) cite the paper; (ii) cite the replication package, both in the manuscript and in the README of the replication package; (iii) include a Data Availability statement in package to explain how data was obtained (and give proper attribution); and (iv) include the data files themselves in the package.
+The material is made available through the Quantitative Economics web
+page as supplementary material. Users are licensed to download, copy,
+and modify the code. When doing so such users must acknowledge all
+authors as the original creators and Quantitative Economics as the
+original publishers. In practice, this means that anyone using the
+material held within the replication package zip must (i) cite the
+paper; (ii) cite the replication package, both in the manuscript and
+in the README of the replication package; (iii) include a Data
+Availability statement in package to explain how data was obtained
+(and give proper attribution); and (iv) include the data files
+themselves in the package.
 
 
 # Requirements
@@ -23,127 +42,11 @@ The material is made available through the Quantitative Economics web page as su
 UNIX or UNIX-like Operatating system.
 
 Tested in Julia 1.6.1 on Linux servers (64-bit)
-Package versions:
-CSV v0.6.2
-CodecZlib v0.7.0
-Contour v0.5.7
-DataFrames v0.21.8
-Distributions v0.25.10
-FixedEffectModels v1.6.2
-ForwardDiff v0.10.18
-GLM v1.5.1
-GZip v0.5.1
-JLD2 v0.4.3
-JuMP v0.21.8
-KNITRO v0.10.0
-KernelDensity v0.6.3
-Latexify v0.15.18
-Optim v1.7.3
-Plots v1.18.2
-PyPlot v2.9.0
-Query v1.0.0
-SpecialFunctions v1.6.2
-StatsBase v0.33.8
-StatsPlots v0.14.30
-Tables v1.4.4
-TranscodingStreams v0.9.5
-
-python:
-2:42
-knitro==12.3.0
-zipp==3.6.0
-yarl==1.6.3
-wrapt==1.12.1
-wheel==0.37.0
-Werkzeug==2.0.1
-urllib3==1.26.7
-typing-extensions==3.10.0.2
-tornado==6.1
-threadpoolctl==3.0.0
-termcolor==1.1.0
-tensorflow==2.4.1
-tensorflow-estimator==2.6.0
-tensorboard==2.4.0
-tensorboard-plugin-wit==1.6.0
-statsmodels==0.12.2
-six==1.16.0
-sip==4.19.13
-setuptools==58.0.4
-seaborn==0.11.2
-scipy==1.7.1
-scikit-learn==0.24.2
-rsa==4.7.2
-requests==2.26.0
-requests-oauthlib==1.3.0
-PyYAML==5.4.1
-pytz==2021.1
-python-dateutil==2.8.2
-PySocks==1.7.1
-pyparsing==3.0.4
-pyOpenSSL==20.0.1
-PyJWT==2.1.0
-pycparser==2.20
-pyasn1==0.4.8
-pyasn1-modules==0.2.8
-pyarrow==3.0.0
-protobuf==3.17.2
-property-cached==1.6.4
-pip==21.2.4
-Pillow==8.4.0
-patsy==0.5.2
-pandas==1.3.3
-packaging==21.3
-opt-einsum==3.3.0
-olefile==0.46
-oauthlib==3.1.1
-numpy==1.20.3
-numexpr==2.7.3
-mypy-extensions==0.4.3
-munkres==1.1.4
-multidict==5.1.0
-mkl-service==2.4.0
-mkl-random==1.2.2
-mkl-fft==1.3.0
-matplotlib==3.5.0
-Markdown==3.3.4
-linearmodels==4.24
-kiwisolver==1.3.1
-Keras==2.4.3
-Keras-Preprocessing==1.1.2
-joblib==1.1.0
-jaxlib==0.1.71+cuda111
-jax==0.2.21
-importlib-metadata==4.8.1
-idna==3.2
-h5py==2.10.0
-grpcio==1.36.1
-google-pasta==0.2.0
-google-auth==1.33.0
-google-auth-oauthlib==0.4.4
-gast==0.4.0
-fonttools==4.25.0
-flatbuffers==2.0
-Cython==0.29.24
-cycler==0.11.0
-cryptography==3.4.8
-coverage==5.5
-click==8.0.1
-charset-normalizer==2.0.4
-chardet==4.0.0
-cffi==1.14.6
-certifi==2021.10.8
-cachetools==4.2.2
-brotlipy==0.7.0
-Bottleneck==1.3.2
-blinker==1.4
-attrs==21.2.0
-async-timeout==3.0.1
-astunparse==1.6.3
-astor==0.8.1
-aiohttp==3.7.4.post0
-absl-py==0.13.0
-
+Python 3.8.16
 KNITRO version 12.3.0
+
+For Exact package version details please see the end of the file.
+
 
 # Contents
 
@@ -210,7 +113,15 @@ KNITRO version 12.3.0
              tuple specifies which simulated data set to use.
 
 - programs/constructTBLS.py: Returns the final tables used in the paper. There are no command line
-                             arguments for this file.     
+                             arguments for this file.
+
+- programs/PlotBeta.jl: Constructs a csv of mean(beta1) - betaSim1 to be used in plots.
+     ARGS: 1: simName; the relative filename of the data to load. For sim i, reads input as "../SimDir/$(simName)$(i).jld2"
+           2: nSims; The total number of simulations
+           3: estName; Relative filename of the output from estimation. For sim i, reads from: "../OutputDir/FONC/$(estName)$(i).jld2"
+           4: outputLocl; Folder for csv output. Outputs to: "../OutputDir/$(outputLoc)/$(simName)_Beta1_Hist.csv"
+
+- programs/
 
 
 # Replication instructions
@@ -278,3 +189,251 @@ python simGLS.py ${SLURM_ARRAY_TASK_ID} 3 high
 5. Aggregating all output
 
 python constructTBLS.py
+
+6. Generating plots
+
+julia PlotBeta J25/FONCPrice_big25J 100 J25/FONCPrice_big25J FONC/csv/J25/
+julia PlotBeta J45/FONCPrice_big45J 100 J45/FONCPrice_big45J FONC/csv/J45/
+julia PlotBeta J25/FONCPrice_sml25J 100 J25/FONCPrice_sml25J FONC/csv/J25/
+julia PlotBeta J25/FONCPrice_over25J 100 J25/FONCPrice_over25J FONC/csv/J25/
+julia PlotBeta J25/FONCPrice_sin25J 100 J25/FONCPrice_sin25J FONC/csv/J25/
+julia PlotBeta J3/FONCPrice_high3J 100 J3/FONCPrice_high3J FONC/csv/J3/
+
+python constructBetaPLTS.py
+python constructSharePLTS.py
+
+# Package versions:
+
+Julia:
+CSV v0.6.2
+CodecZlib v0.7.0
+Contour v0.5.7
+DataFrames v0.21.8
+Distributions v0.25.10
+FixedEffectModels v1.6.2
+ForwardDiff v0.10.18
+GLM v1.5.1
+GZip v0.5.1
+JLD2 v0.4.3
+JuMP v0.21.8
+KNITRO v0.10.0
+KernelDensity v0.6.3
+Latexify v0.15.18
+Optim v1.7.3
+Plots v1.18.2
+PyPlot v2.9.0
+Query v1.0.0
+SpecialFunctions v1.6.2
+StatsBase v0.33.8
+StatsPlots v0.14.30
+Tables v1.4.4
+TranscodingStreams v0.9.5
+
+python:
+_libgcc_mutex 0.1
+_openmp_mutex 5.1
+abseil-cpp 20211102.0
+arrow-cpp 8.0.0
+asn1crypto 1.4.0
+attrs 22.1.0
+blas 1.0
+boost-cpp 1.73.0
+boto3 1.18.16
+botocore 1.21.16
+brotli 1.0.9
+brotli-bin 1.0.9
+bzip2 1.0.8
+c-ares 1.18.1
+ca-certificates 2022.12.7
+cached-property 1.5.2
+cairo 1.16.0
+certifi 2022.12.7
+cffi 1.14.6
+cfitsio 3.470
+chardet 4.0.0
+charset-normalizer 2.0.4
+click 8.0.4
+click-plugins 1.1.1
+cligj 0.7.2
+contourpy 1.0.5
+cryptography 3.4.7
+curl 7.87.0
+cycler 0.11.0
+dbus 1.13.18
+eigen 3.3.7
+expat 2.4.9
+fastparquet 0.5.0
+ffmpeg 4.2.2
+fiona 1.8.22
+fontconfig 2.14.1
+fonttools 4.25.0
+freetype 2.12.1
+freexl 1.0.6
+gdal 3.0.2
+geopandas 0.9.0
+geopandas-base 0.9.0
+geos 3.8.0
+geotiff 1.7.0
+gflags 2.2.2
+giflib 5.2.1
+glib 2.69.1
+glog 0.5.0
+gmp 6.2.1
+gnutls 3.6.15
+graphite2 1.3.14
+grpc-cpp 1.46.1
+gst-plugins-base 1.14.0
+gstreamer 1.14.0
+h5py 3.2.1
+harfbuzz 4.3.0
+hdf4 4.2.13
+hdf5 1.10.6
+icu 58.2
+idna 3.2
+isodate 0.6.0
+jmespath 0.10.0
+joblib 1.1.1
+jpeg 9e
+json-c 0.16
+kealib 1.4.14
+kiltsreader 0.0.1
+kiwisolver 1.4.4
+krb5 1.19.4
+lame 3.100
+lcms2 2.12
+ld_impl_linux-64 2.38
+lerc 3.0
+libblas 3.9.0
+libboost 1.73.0
+libbrotlicommon 1.0.9
+libbrotlidec 1.0.9
+libbrotlienc 1.0.9
+libcblas 3.9.0
+libclang 10.0.1
+libcurl 7.87.0
+libdap4 3.19.1
+libdeflate 1.8
+libedit 3.1.20221030
+libev 4.33
+libevent 2.1.12
+libffi 3.4.2
+libgcc-ng 11.2.0
+libgdal 3.0.2
+libgfortran-ng 11.2.0
+libgfortran5 11.2.0
+libgomp 11.2.0
+libidn2 2.3.2
+libkml 1.3.0
+liblapack 3.9.0
+libllvm10 10.0.1
+libnetcdf 4.8.1
+libnghttp2 1.46.0
+libopenblas 0.3.20
+libopus 1.3.1
+libpng 1.6.37
+libpq 12.9
+libprotobuf 3.20.3
+libspatialindex 1.9.3
+libspatialite 4.3.0a
+libssh2 1.10.0
+libstdcxx-ng 11.2.0
+libtasn1 4.16.0
+libthrift 0.15.0
+libtiff 4.5.0
+libunistring 0.9.10
+libuuid 1.41.5
+libvpx 1.7.0
+libwebp 1.2.4
+libwebp-base 1.2.4
+libxcb 1.15
+libxkbcommon 1.0.1
+libxml2 2.9.14
+libxslt 1.1.35
+libzip 1.8.0
+llvmlite 0.34.0
+lz4-c 1.9.4
+mapclassify 2.5.0
+matplotlib 3.6.2
+matplotlib-base 3.6.2
+mpmath 1.2.1
+msrest 0.6.21
+munch 2.5.0
+munkres 1.1.4
+ncurses 6.4
+nettle 3.7.3
+networkx 2.8.4
+nspr 4.33
+nss 3.74
+numba 0.51.2
+numpy 1.22.3
+oauthlib 3.1.1
+opencv 4.6.0
+opencv-python 4.3.0.36
+opencv-python-headless 4.7.0.68
+openh264 2.1.1
+openjpeg 2.4.0
+openssl 1.1.1s
+orc 1.7.4
+oscrypto 1.2.1
+packaging 22.0
+pandas 1.2.1
+patsy 0.5.3
+pcre 8.45
+pillow 9.3.0
+pip 21.2.4
+pixman 0.40.0
+ply 3.11
+poppler 0.81.0
+poppler-data 0.4.11
+proj 6.2.1
+pyarrow 10.0.1
+pyblp 1.0.0
+pycparser 2.20
+pycryptodomex 3.10.1
+pyhdfe 0.1.0
+pyjwt 2.1.0
+pyopenssl 20.0.1
+pyparsing 3.0.9
+pyproj 2.6.1.post1
+pyqt 5.15.7
+pyqt5-sip 12.11.0
+python 3.8.16
+python-dateutil 2.8.2
+python-snappy 0.5.4
+python_abi 3.8
+pytz 2022.7
+qt-main 5.15.2
+qt-webengine 5.15.9
+qtwebkit 5.212
+re2 2022.04.01
+readline 8.2
+requests 2.26.0
+requests-oauthlib 1.3.0
+rtree 1.0.1
+s3transfer 0.5.0
+scikit-learn 1.2.0
+scipy 1.8.1
+seaborn 0.12.2
+setuptools 65.6.3
+shapely 1.8.4
+sip 6.6.2
+six 1.16.0
+snappy 1.1.9
+sqlite 3.40.1
+statsmodels 0.11.1
+sympy 1.8
+tbb 2021.6.0
+threadpoolctl 2.2.0
+thrift 0.11.0
+tiledb 2.3.3
+tk 8.6.12
+toml 0.10.2
+tornado 6.1
+urllib3 1.26.6
+utf8proc 2.6.1
+wheel 0.37.1
+x264 1!157.20191217
+xerces-c 3.2.4
+xz 5.2.10
+zlib 1.2.13
+zstd 1.5.2
