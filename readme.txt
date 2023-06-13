@@ -121,8 +121,13 @@ For Exact package version details please see the end of the file.
            3: estName; Relative filename of the output from estimation. For sim i, reads from: "../OutputDir/FONC/$(estName)$(i).jld2"
            4: outputLocl; Folder for csv output. Outputs to: "../OutputDir/$(outputLoc)/$(simName)_Beta1_Hist.csv"
 
-- programs/
+- programs/constructBetaPLTS.py: Constructs plots of the distribution of the posterior mean
+                                 estimates of beta1. There are no command line arguments for
+                                 this file.
 
+- programs/constructSharePLTS.py: Constructs the plots mc_shareBias_EpsAdjust_J25.pdf and
+                                  mc_shareBias_MedLam_J25.pdf using the simulated data. There are
+                                  no command line arguments for this file.
 
 # Replication instructions
 
