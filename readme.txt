@@ -141,15 +141,13 @@ scheduling software, or out of parallel using a for loop in your shell
 language of choice. In all places in the replication, simply replace
 $((0 + ${SLURM_ARRAY_TASK_ID})) with the appropriate index. In our
 case, these calls are placed in individual slurm batch files, using
-the following flags.
+the following flags. Simulations were run on a computational cluster
+with 1600 cores and 6TB of RAM. Please be prepared for long run times
+if running in series.
 
 #SBATCH --ntasks=1
 #SBATCH --nodes=1
 #SBATCH --array=1-100
-
-Simulation of the data as well as estimation is very expensive
-computationally. Full parallelization used 1600 cores and 6TB of
-RAM. Please be prepared for long run times.
 
 0. Ensuring the Correct File structure exists
 
