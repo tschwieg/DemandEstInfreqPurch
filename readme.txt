@@ -147,6 +147,9 @@ the following flags.
 #SBATCH --nodes=1
 #SBATCH --array=1-100
 
+Simulation of the data as well as estimation is very expensive
+computationally. Full parallelization used 1600 cores and 6TB of
+RAM. Please be prepared for long run times.
 
 0. Ensuring the Correct File structure exists
 
