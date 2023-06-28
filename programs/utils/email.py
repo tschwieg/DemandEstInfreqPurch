@@ -9,8 +9,8 @@ class mailNotify:
     """Send e-mail to self after long program run"""
 
     def __init__(self,
-                 emailFrom = "servers.mcaceresb@gmail.com",
-                 emailPass = "DBX/g)]kHz*Vx2j]",
+                 emailFrom = "",
+                 emailPass = "",
                  serverID  = None):
         """Initialize e-mail, password, and server alias
 
